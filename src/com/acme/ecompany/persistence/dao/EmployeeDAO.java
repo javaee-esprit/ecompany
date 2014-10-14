@@ -23,6 +23,7 @@ public class EmployeeDAO implements IEmployeeDAO{
     private static final String SQL_SAVE =  "INSERT INTO T_EMPLOYEE (ID,NAME,SALARY) VALUES (?,?,?)";
     private static final String SQL_FIND_ALL =  "SELECT * FROM T_EMPLOYEE";
     private static final String SQL_UPDATE =  "UPDATE T_EMPLOYEE SET NAME=?, SALARY=? WHERE ID=?";
+    private static final String SQL_DELETE =  "DELETE FROM T_EMPLOYEE WHERE ID=?";
 
     @Override
     public void save(Employee employee) {
@@ -84,7 +85,16 @@ public class EmployeeDAO implements IEmployeeDAO{
 
     @Override
     public void delete(Employee employee) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(findById(employee.getId())!= null){
+            PreparedStatement pstmt = null;
+            try {
+                pstmt = connection.prepareStatement(SQL_DELETE);
+                pstmt.setInt(1, employee.getId());
+                pstmt.executeUpdate();
+            } catch (SQLException ex) {
+                Logger.getLogger(EmployeeDAO.class.getName()).log(Level.SEVERE, "delete failed", ex);
+            }
+        }
     }
 
     @Override
