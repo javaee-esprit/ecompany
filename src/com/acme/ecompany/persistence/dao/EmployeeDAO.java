@@ -6,6 +6,7 @@ package com.acme.ecompany.persistence.dao;
 
 import com.acme.ecompany.persistence.model.Employee;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +21,8 @@ public class EmployeeDAO implements IEmployeeDAO{
     
     private static final String SQL_FIND =  "SELECT * FROM T_EMPLOYEE WHERE ID=?";
     private static final String SQL_SAVE =  "INSERT INTO T_EMPLOYEE (ID,NAME,SALARY) VALUES (?,?,?)";
+    private static final String SQL_FIND_ALL =  "SELECT * FROM T_EMPLOYEE";
+    private static final String SQL_UPDATE =  "UPDATE T_EMPLOYEE SET NAME=?, SALARY=? WHERE ID=?";
 
     @Override
     public void save(Employee employee) {
@@ -65,7 +68,18 @@ public class EmployeeDAO implements IEmployeeDAO{
 
     @Override
     public void update(Employee employee) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(findById(employee.getId())!= null){
+            PreparedStatement pstmt = null;
+            try {
+                pstmt = connection.prepareStatement(SQL_UPDATE);
+                pstmt.setString(1, employee.getName());
+                pstmt.setDouble(2, employee.getSalary());
+                pstmt.setInt(3, employee.getId());
+                pstmt.executeUpdate();
+            } catch (SQLException ex) {
+                Logger.getLogger(EmployeeDAO.class.getName()).log(Level.SEVERE, "update failed", ex);
+            }
+        }
     }
 
     @Override
@@ -75,7 +89,28 @@ public class EmployeeDAO implements IEmployeeDAO{
 
     @Override
     public List<Employee> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<Employee> all = new ArrayList<Employee>();
+        
+        Statement stmt = null;
+        ResultSet rs = null;       
+        
+        try{
+            
+            stmt = connection.createStatement();
+            rs = stmt.executeQuery(SQL_FIND_ALL);
+            while(rs.next()){
+                int employeeId = rs.getInt("ID");
+                String employeeName = rs.getString("NAME");
+                double employeeSalary = rs.getDouble("SALARY");
+                Employee found = new Employee(employeeId,employeeName,employeeSalary);
+                all.add(found);
+            }
+
+                
+        }catch(SQLException  ex){
+           Logger.getLogger(EmployeeDAO.class.getName()).log(Level.SEVERE, "find all failed", ex);
+        }
+        return all;
     }
     
 }
