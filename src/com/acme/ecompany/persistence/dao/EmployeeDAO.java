@@ -7,6 +7,8 @@ package com.acme.ecompany.persistence.dao;
 import com.acme.ecompany.persistence.model.Employee;
 import java.sql.*;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -15,10 +17,24 @@ import java.util.List;
 public class EmployeeDAO implements IEmployeeDAO{
     
     private Connection connection = DataSource.getInstance().getConnection();
+    
+    private static final String SQL_FIND =  "SELECT * FROM T_EMPLOYEE WHERE ID=?";
+    private static final String SQL_SAVE =  "INSERT INTO T_EMPLOYEE (ID,NAME,SALARY) VALUES (?,?,?)";
 
     @Override
     public void save(Employee employee) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(findById(employee.getId())== null){
+            PreparedStatement pstmt = null;
+            try {
+                pstmt = connection.prepareStatement(SQL_SAVE);
+                pstmt.setInt(1, employee.getId());
+                pstmt.setString(2, employee.getName());
+                pstmt.setDouble(3, employee.getSalary());
+                pstmt.executeUpdate();
+            } catch (SQLException ex) {
+                Logger.getLogger(EmployeeDAO.class.getName()).log(Level.SEVERE, "save failed", ex);
+            }
+        }
     }
 
     @Override
@@ -27,10 +43,10 @@ public class EmployeeDAO implements IEmployeeDAO{
         
         PreparedStatement pstmt = null;
         ResultSet rs = null;       
-        String sql = "SELECT * FROM T_EMPLOYEE WHERE ID=?";
+        
         try{
             
-            pstmt = connection.prepareStatement(sql);
+            pstmt = connection.prepareStatement(SQL_FIND);
             pstmt.setInt(1, id);
             rs = pstmt.executeQuery();
             if(rs.next()){
@@ -42,7 +58,7 @@ public class EmployeeDAO implements IEmployeeDAO{
 
                 
         }catch(SQLException  ex){
-            System.out.println("PROBLEM OCCURED : " + ex.getMessage());
+           Logger.getLogger(EmployeeDAO.class.getName()).log(Level.SEVERE, "find failed", ex);
         }
         return found;
     }
